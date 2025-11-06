@@ -1,0 +1,41 @@
+﻿@model List<proiect.Models.PhotoComment>
+
+<h2>Pending Photo Comments</h2>
+
+@if (!Model.Any())
+{
+    <p>No pending comments.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Comment</th>
+                <th>Author</th>
+                <th>Photo</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var comment in Model)
+            {
+                <tr>
+                    <td>@comment.Text</td>
+                    <td>@comment.Author?.DisplayName</td>
+                    <td>
+                        <img src="@comment.Photo.ImageUrl" width="100" />
+                    </td>
+                    <td>
+                        <form method="post" asp-action="Approve" asp-route-id="@comment.Id" class="d-inline">
+                            <button class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="post" asp-action="Reject" asp-route-id="@comment.Id" class="d-inline ms-2">
+                            <button class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

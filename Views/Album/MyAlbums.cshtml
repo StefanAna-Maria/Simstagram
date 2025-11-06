@@ -1,0 +1,26 @@
+﻿@model List<proiect.Models.Album>
+
+@{
+    ViewData["Title"] = "My Albums";
+}
+
+<h2>My Albums</h2>
+
+<a class="btn btn-success mb-3" href="@Url.Action("Create", "Album")">Create New Album</a>
+
+@if (!Model.Any())
+{
+    <p>You don't have any albums yet.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var album in Model)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@album.Title (@album.Photos?.Count ?? 0) photo(s)</span>
+                <a class="btn btn-sm btn-primary" href="@Url.Action("ViewAlbum", "Album", new { id = album.Id })">View</a>
+            </li>
+        }
+    </ul>
+}

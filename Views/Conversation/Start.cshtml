@@ -1,0 +1,23 @@
+﻿@model proiect.Models.ConversationCreateViewModel
+
+@{
+    ViewData["Title"] = "Start New Conversation";
+}
+
+<h2>Start New Conversation</h2>
+
+<form asp-action="Start" method="post">
+    <div class="form-group">
+        <label for="ReceiverId">Choose a friend:</label>
+        <select asp-for="ReceiverId" class="form-control" asp-items="@(new SelectList(Model.Friends, "Id", "DisplayName"))">
+            <option value="">-- Select --</option>
+        </select>
+    </div>
+
+    <div class="form-group mt-3">
+        <label for="Message">Initial Message:</label>
+        <textarea asp-for="Message" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3" style="background-color: #4e8885">Start Conversation</button>
+</form>

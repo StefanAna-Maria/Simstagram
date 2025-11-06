@@ -1,0 +1,126 @@
+﻿@model List<proiect.Models.Post>
+@{
+    var comments = ViewBag.Comments as List<proiect.Models.Comment>;
+    var photos = ViewBag.Photos as List<proiect.Models.Photo>;
+    var photoComments = ViewBag.PhotoComments as List<proiect.Models.PhotoComment>;
+}
+
+<h2 class="mb-4">Admin Panel</h2>
+
+<div class="d-flex justify-content-end mb-3">
+    <a asp-action="SendWarning" asp-controller="Admin" class="btn btn-warning">
+        Send Manual Warning
+    </a>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- POSTS + COMMENTS -->
+        <div class="col-lg-6 mb-4">
+            <h4 class="mb-3">Posts & Comments</h4>
+
+            @foreach (var post in Model)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <h6>@post.User?.DisplayName (@post.User?.UserName)</h6>
+                        <p>@post.Text</p>
+                        <form asp-action="DeletePost" method="post">
+                            <input type="hidden" name="id" value="@post.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Delete Post</button>
+                        </form>
+                    </div>
+
+                    @{
+                        var relatedComments = comments.Where(c => c.PostId == post.Id).ToList();
+                    }
+
+                    @if (relatedComments.Any())
+                    {
+                        <div class="card-footer bg-light">
+                            <h6 class="mb-2">Comments:</h6>
+                            <button class="btn btn-sm btn-outline-secondary mb-2" type="button"
+                                    onclick="toggleComments(this)">
+                                View Comments (@relatedComments.Count()) 
+                            </button>
+
+                            <div class="comment-section d-none">
+                                @foreach (var comment in relatedComments)
+                                {
+                                    <div class="border p-2 mb-2 rounded">
+                                        <strong>@comment.Author?.DisplayName</strong>: @comment.Text
+                                        <form asp-action="DeleteComment" method="post" class="mt-1">
+                                            <input type="hidden" name="id" value="@comment.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete Comment</button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- PHOTOS + PHOTO COMMENTS -->
+        <div class="col-lg-6 mb-4">
+            <h4 class="mb-3">Photos & Comments</h4>
+
+            @foreach (var photo in photos)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <p><strong>@photo.Album?.User?.DisplayName</strong> in <em>@photo.Album?.Title</em></p>
+                        <img src="@photo.ImageUrl" class="img-fluid rounded mb-2" style="max-height: 200px;" />
+                        <form asp-action="DeletePhoto" method="post">
+                            <input type="hidden" name="id" value="@photo.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Delete Photo</button>
+                        </form>
+                    </div>
+
+                    @{
+                        var relatedPhotoComments = photoComments.Where(c => c.PhotoId == photo.Id).ToList();
+                    }
+
+                    @if (relatedPhotoComments.Any())
+                    {
+                        <div class="card-footer bg-light">
+                            <h6 class="mb-2">Comments:</h6>
+                            <button class="btn btn-sm btn-outline-secondary mb-2" type="button"
+                                    onclick="toggleComments(this)">
+                                View Comments (@relatedPhotoComments.Count())
+                            </button>
+
+                            <div class="comment-section d-none">
+                                @foreach (var comment in relatedPhotoComments)
+                                {
+                                    <div class="border p-2 mb-2 rounded">
+                                        <strong>@comment.Author?.DisplayName</strong>: @comment.Text
+                                        <form asp-action="DeletePhotoComment" method="post" class="mt-1">
+                                            <input type="hidden" name="id" value="@comment.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete Comment</button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleComments(button) {
+            const section = button.nextElementSibling;
+            section.classList.toggle("d-none");
+            button.textContent = section.classList.contains("d-none")
+                ? "View Comments " + "(" + section.children.length + ")"
+                : "Hide Comments";
+        }
+    </script>
+}

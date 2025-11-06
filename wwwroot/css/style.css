@@ -1,0 +1,40 @@
+﻿body.dark-mode {
+    background-color: #181a1b;
+    color: #e0e0e0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark-mode .navbar {
+    background-color: #2c3e50 !important;
+}
+
+.dark-mode .card,
+.dark-mode .form-control,
+.dark-mode .modal-content {
+    background-color: #2a2d31;
+    color: #e0e0e0;
+    border-color: #444;
+}
+
+.dark-mode .btn {
+    background-color: #3a5f7f;
+    color: #fff;
+    border: none;
+}
+
+    .dark-mode .btn:hover {
+        background-color: #517b9c;
+    }
+
+.dark-mode a {
+    color: #89cfff;
+}
+
+.dark-mode .dropdown-menu {
+    background-color: #2a2d31;
+    color: #e0e0e0;
+}
+
+.dark-mode .dropdown-item:hover {
+    background-color: #3a3d42;
+}

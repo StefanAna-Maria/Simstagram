@@ -1,0 +1,35 @@
+﻿@model List<proiect.Models.Conversation>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<proiect.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Conversations";
+    var currentUserId = UserManager.GetUserId(User);
+}
+
+<h2>Conversations</h2>
+
+@if (!Model.Any())
+{
+    <p>No conversations yet.</p>
+}
+else
+{
+    foreach (var conv in Model)
+    {
+        var partner = conv.User1Id == currentUserId ? conv.User2 : conv.User1;
+        var imageUrl = string.IsNullOrEmpty(partner?.ProfilePicturePath)
+            ? Url.Content("~/images/avatar-placeholder.png")
+            : Url.Content(partner.ProfilePicturePath);
+
+        <div class="d-flex justify-content-between align-items-center border rounded bg-white px-3 py-2 mb-2 shadow-sm">
+            <div class="d-flex align-items-center">
+                <img src="@imageUrl" alt="Avatar" width="40" height="40" class="rounded-circle me-3" />
+                <span>@partner?.DisplayName (@partner?.Email)</span>
+            </div>
+            <a href="@Url.Action("Chat", "Conversation", new { id = conv.Id })" class="btn btn-sm btn-primary" style="background-color:#4e8885" >Open</a>
+        </div>
+    }
+}
+
+<a href="@Url.Action("Start", "Conversation")" class="btn btn-success mt-3" style="background-color:#4e8885">Start New Conversation</a>

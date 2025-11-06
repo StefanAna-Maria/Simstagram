@@ -1,0 +1,34 @@
+﻿@model List<proiect.Models.ApplicationUser>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light fw-bold">
+        Friends
+    </div>
+    <ul class="list-group list-group-flush">
+        @foreach (var friend in Model)
+        {
+            var profilePic = string.IsNullOrEmpty(friend.ProfilePicturePath)
+            ? "/images/avatar-placeholder.png"
+            : friend.ProfilePicturePath;
+
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <img src="@profilePic" alt="avatar" class="rounded-circle me-2" style="width: 35px; height: 35px; object-fit: cover;" />
+                    <span>@friend.DisplayName</span>
+                </div>
+                <div class="btn-group">
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="@Url.Action("ViewProfile", "Profile", new { id = friend.Id })"
+                       title="View Profile">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </a>
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="@Url.Action("Start", "Conversation", new { receiverId = friend.Id })"
+                       title="Send Message">
+                        <i class="bi bi-chat-dots"></i>
+                    </a>
+                </div>
+            </li>
+        }
+    </ul>
+</div>

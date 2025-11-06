@@ -1,0 +1,16 @@
+﻿@model List<proiect.Models.FriendRequest>
+
+<h2>Received Friend Requests</h2>
+
+@foreach (var request in Model)
+{
+    <div class="card mt-3">
+        <div class="card-body">
+            <p>@request.Sender.DisplayName (@request.Sender.Email)</p>
+            <form asp-controller="Friend" asp-action="AcceptRequest" method="post">
+                <input type="hidden" name="requestId" value="@request.Id" />
+                <button class="btn btn-success btn-sm" type="submit">Accept</button>
+            </form>
+        </div>
+    </div>
+}

@@ -1,0 +1,171 @@
+﻿@model proiect.ViewModels.FeedViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<proiect.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Feed";
+    var currentUserId = UserManager.GetUserId(User);
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@if (TempData["CommentConfirmation"] != null)
+{
+    <div class="alert alert-info">@TempData["CommentConfirmation"]</div>
+}
+
+<h2>Feed</h2>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <!-- ADD POST FORM -->
+    <form asp-controller="Home" asp-action="AddPost" method="post" class="mb-4">
+        @Html.AntiForgeryToken()
+        <div class="mb-2">
+            <textarea name="text" class="form-control" placeholder="Write a new post..." required></textarea>
+        </div>
+        <input type="hidden" name="returnUrl" value="/Home/Feed" />
+        <button type="submit" class="btn btn-success" style="background: #4e8885">Post</button>
+    </form>
+
+    <!-- ADD PHOTO FORM -->
+    <form asp-controller="Home" asp-action="AddPhoto" method="post" enctype="multipart/form-data" class="mb-4">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-2">
+            <input type="file" name="photoFile" class="form-control" required />
+        </div>
+
+        <div class="mb-2">
+            <label for="selectedAlbumId">Select album (optional):</label>
+            <select name="selectedAlbumId" class="form-select">
+                <option value="">-- Select existing album --</option>
+                @foreach (var album in Model.Albums)
+                {
+                    <option value="@album.Id">@album.Title</option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-2">
+            <label for="newAlbumTitle">Or create new album:</label>
+            <input type="text" name="newAlbumTitle" class="form-control" placeholder="New album title" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="background: #4e8885">Upload Photo</button>
+    </form>
+}
+
+<hr />
+
+@if (Model.Posts.Any())
+{
+    <h3>Recent Posts</h3>
+    @foreach (var post in Model.Posts)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">@post.User.DisplayName</h5>
+                <p class="card-text">@post.Text</p>
+                <small class="text-muted">@post.CreatedAt.ToString("g")</small>
+
+                @if (post.Comments != null && post.Comments.Any(c => c.IsApproved))
+                {
+                    <hr />
+                    <button class="btn btn-sm btn-outline-secondary mb-2" type="button" onclick="toggleComments(this)">
+                        View Comments (@post.Comments.Count(c => c.IsApproved))
+                    </button>
+                    <div class="comments-section d-none">
+                        <strong>Comments:</strong>
+                        @foreach (var c in post.Comments.Where(c => c.IsApproved))
+                        {
+                            <div class="ms-3">
+                                <strong>@c.Author?.DisplayName</strong>: @c.Text
+                                <div class="text-muted small">@c.CreatedAt.ToString("g")</div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <form asp-controller="Comment" asp-action="Add" method="post" class="mt-2">
+                        <input type="hidden" name="postId" value="@post.Id" />
+                        <input type="hidden" name="returnUrl" value="/Home/Feed" />
+                        <div class="input-group">
+                            <input name="text" class="form-control" placeholder="Add a comment..." required />
+                            <button class="btn btn-outline-primary text-light" type="submit" style="background: #4e8885">Comment</button>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    }
+}
+
+@if (Model.Photos.Any())
+{
+    <h3 class="mt-4">Recent Photos</h3>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        @foreach (var photo in Model.Photos)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <img src="@photo.ImageUrl" class="card-img-top" style="object-fit: cover; height: 250px;" alt="Photo">
+                    <div class="card-body bg-light">
+                        <small class="text-muted">by @photo.Album.User.DisplayName</small>
+
+                        @if (photo.Comments != null && photo.Comments.Any(c => c.IsApproved))
+                        {
+                            <button class="btn btn-sm btn-outline-secondary mb-2" type="button" onclick="toggleComments(this)">
+                                View Comments (@photo.Comments.Count(c => c.IsApproved))
+                            </button>
+                            <div class="comments-section d-none">
+                                <strong>Comments:</strong>
+                                @foreach (var c in photo.Comments.Where(c => c.IsApproved))
+                                {
+                                    <div class="ms-2">
+                                        <strong>@c.Author?.DisplayName</strong>: @c.Text
+                                        <div class="text-muted small">@c.CreatedAt.ToString("g")</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <form asp-controller="PhotoComment" asp-action="Add" method="post" class="mt-2">
+                                <input type="hidden" name="PhotoId" value="@photo.Id" />
+                                <input type="hidden" name="returnUrl" value="/Home/Feed" />
+                                <div class="input-group">
+                                    <input type="text" name="Text" class="form-control" placeholder="Add a comment..." required />
+                                    <button type="submit" class="btn btn-outline-primary text-light" style="background: #4e8885">Comment</button>
+                                </div>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function toggleComments(button) {
+            const commentsSection = button.nextElementSibling;
+            commentsSection.classList.toggle("d-none");
+
+            if (commentsSection.classList.contains("d-none")) {
+                const count = commentsSection.children.length > 0
+                    ? commentsSection.children.length
+                    : 0;
+                button.textContent = `View Comments (${count})`;
+            } else {
+                button.textContent = "Hide Comments";
+            }
+        }
+    </script>
+}

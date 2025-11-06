@@ -1,0 +1,19 @@
+﻿@model proiect.Models.Album
+
+@{
+    ViewData["Title"] = "Create Album";
+}
+
+<h2>Create New Album</h2>
+
+@using (Html.BeginForm("Create", "Album", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label for="Title">Album Title</label>
+        @Html.TextBoxFor(a => a.Title, new { @class = "form-control", required = "required" })
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Create</button>
+}

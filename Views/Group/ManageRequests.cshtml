@@ -1,0 +1,43 @@
+﻿@model List<proiect.ViewModels.GroupJoinRequestViewModel>
+
+@{
+    ViewData["Title"] = "Manage Join Requests";
+    var groupId = ViewBag.GroupId;
+}
+
+<h2>Pending Join Requests</h2>
+
+@if (!Model.Any())
+{
+    <p>No pending requests at the moment.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var request in Model)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@request.RequesterUserName</h5>
+                        <p class="card-text"><strong>Date:</strong> @request.RequestDate.ToLocalTime()</p>
+
+                        <div class="d-flex gap-2">
+                            <form asp-action="RespondToRequest" method="post">
+                                <input type="hidden" name="requestId" value="@request.RequestId" />
+                                <input type="hidden" name="accept" value="true" />
+                                <button type="submit" class="btn btn-success">Accept</button>
+                            </form>
+
+                            <form asp-action="RespondToRequest" method="post">
+                                <input type="hidden" name="requestId" value="@request.RequestId" />
+                                <input type="hidden" name="accept" value="false" />
+                                <button type="submit" class="btn btn-danger">Reject</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

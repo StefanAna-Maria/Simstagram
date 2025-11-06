@@ -1,0 +1,65 @@
+﻿@model List<proiect.Models.Post>
+
+@using (Html.BeginForm("Create", "Post", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label for="Text">Add a new post</label>
+        @Html.TextArea("Text", null, new { @class = "form-control", required = "required" })
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Post</button>
+}
+
+<hr />
+
+<h2>Latest Posts</h2>
+
+@foreach (var post in Model)
+{
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="text-muted">
+                Posted by
+                <a asp-controller="Profile" asp-action="ViewProfile" asp-route-id="@post.User.Id">
+                    @post.User.Email
+                </a>
+                on @post.CreatedAt.ToString("g")
+            </h5>
+
+            <p class="card-text">@post.Text</p>
+            <p class="text-muted">Posted on @post.CreatedAt.ToString("g")</p>
+        </div>
+
+        @if (post.Comments != null && post.Comments.Any(c => c.IsApproved))
+        {
+            <div class="mt-2 ms-3">
+                <strong>Comments:</strong>
+                @foreach (var comment in post.Comments.Where(c => c.IsApproved))
+                {
+                    <div class="border rounded p-2 mt-1">
+                        <p class="mb-1">@comment.Text</p>
+                        <small class="text-muted">by @comment.Author?.DisplayName on @comment.CreatedAt.ToString("g")</small>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ADD COMMENT FORM -->
+        @if (User.Identity.IsAuthenticated && ViewBag.AllowedToComment != null && ViewBag.AllowedToComment[post.Id])
+        {
+            <div class="mt-2 ms-3">
+                @using (Html.BeginForm("Add", "Comment", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("PostId", post.Id)
+
+                    <div class="form-group">
+                        <textarea name="Text" class="form-control" placeholder="Write a comment..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary mt-1">Comment</button>
+                }
+            </div>
+        }
+    </div>
+}

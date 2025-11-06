@@ -1,0 +1,30 @@
+﻿@model List<proiect.Models.Comment>
+
+<h2>Pending Comments</h2>
+
+@if (!Model.Any())
+{
+    <p>No pending comments.</p>
+}
+else
+{
+    foreach (var comment in Model)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <p>@comment.Text</p>
+                <small>By @comment.Author?.DisplayName on post: @comment.Post?.Text</small>
+                <form method="post" asp-controller="Comment" asp-action="Approve">
+                    <input type="hidden" name="id" value="@comment.Id" />
+                    <button type="submit" class="btn btn-sm btn-success mt-1">Approve</button>
+                </form>
+
+                <form method="post" asp-controller="Comment" asp-action="Reject" class="d-inline">
+                    <input type="hidden" name="id" value="@comment.Id" />
+                    <button type="submit" class="btn btn-sm btn-danger mt-1">Reject</button>
+                </form>
+
+            </div>
+        </div>
+    }
+}

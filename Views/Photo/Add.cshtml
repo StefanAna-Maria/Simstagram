@@ -1,0 +1,18 @@
+﻿@model proiect.Models.Photo
+
+@{
+    ViewData["Title"] = "Add Photo to Album";
+}
+
+<h2>Add Photo to Album</h2>
+
+<form method="post" enctype="multipart/form-data" asp-action="Add" asp-controller="Photo">
+    <input type="hidden" name="albumId" value="@ViewBag.AlbumId" />
+
+    <div class="form-group">
+        <label for="imageFile">Select Image</label>
+        <input type="file" name="imageFile" class="form-control" accept="image/*" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Upload</button>
+</form>

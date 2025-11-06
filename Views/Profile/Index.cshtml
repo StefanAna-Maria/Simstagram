@@ -1,0 +1,16 @@
+﻿@model IEnumerable<ApplicationUser>
+
+<h2 style="font-family: 'Inter', sans-serif;">Users</h2>
+
+
+
+
+<ul class="list-group mt-3">
+    @foreach (var user in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center" style="background-color: #bfdbd1; border: 2px solid #5a8c8a; border-radius: 8px;">
+            <span>@user.DisplayName (@user.Email)</span>
+            <a class="btn btn-sm" style="background-color: #5a8c8a; color: white;" asp-action="ViewProfile" asp-route-id="@user.Id">View Profile</a>
+        </li>
+    }
+</ul>

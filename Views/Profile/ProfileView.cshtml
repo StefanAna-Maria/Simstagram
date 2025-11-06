@@ -1,0 +1,259 @@
+﻿@model proiect.Models.ApplicationUser
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    var currentUserId = UserManager.GetUserId(User);
+    bool isFriend = ViewBag.IsFriend ?? false;
+    bool hasPending = ViewBag.HasPendingFriendRequest ?? false;
+    bool sentByCurrentUser = ViewBag.SentByCurrentUser ?? false;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<style>
+    .profile-section {
+        background-color: #bfdbd1;
+        padding: 1.5rem;
+        margin-bottom: 0rem;
+    }
+
+    .album-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .album-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+</style>
+
+<div class="mt-4">
+
+
+    <!-- Titlu profil -->
+    <div class="profile-section text-center" style="background-color: #5a8c8a; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+        <img src="@(!string.IsNullOrEmpty(Model.ProfilePicturePath) ? Model.ProfilePicturePath : "/images/avatar-placeholder.png")"
+             alt="Profile picture"
+             class="rounded-circle mb-3"
+             style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #4e8885;" />
+        <h2>@Model.DisplayName's Profile</h2>
+    </div>
+
+    <!-- Informații profil -->
+    <div class="profile-section" style="background-color: #eeeeee">
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p>
+            <strong>Visibility:</strong>
+            @if (Model.IsProfilePublic)
+            {
+                <span class="badge bg-success">Public</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Private</span>
+            }
+        </p>
+
+        @if (SignInManager.IsSignedIn(User))
+        {
+            if (currentUserId == Model.Id)
+            {
+                <a asp-controller="Profile" asp-action="EditProfile" class="btn btn-secondary">Edit Profile</a>
+            }
+            else if (isFriend)
+            {
+                <form method="post" asp-controller="Friend" asp-action="RemoveFriend">
+                    <input type="hidden" name="friendId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">Remove Friend</button>
+                </form>
+            }
+            else
+            {
+                if (hasPending && sentByCurrentUser)
+                {
+                    <form asp-controller="Friend" asp-action="CancelRequest" asp-route-receiverId="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-outline-secondary">Cancel Request</button>
+                    </form>
+                }
+                else if (hasPending)
+                {
+                    <span class="text-info">Pending</span>
+                }
+                else
+                {
+                    <form asp-controller="Friend" asp-action="SendRequest" asp-route-receiverId="@Model.Id" method="post">
+                        <button type="submit" class="btn text-white" style="background-color: #5a8c8a;">Send Friend Request</button>
+
+                    </form>
+                }
+            }
+        }
+    </div>
+
+    <div class="profile-section" style="background-color: #eeeeee"><hr /></div>
+
+    @if (ViewBag.Restricted == true)
+    {
+        <div class="alert alert-warning mt-4">
+            This profile is private. You must be friends or logged in to view posts and photos.
+        </div>
+    }
+    else
+    {
+        <!-- POSTS -->
+        <div class="profile-section" style="background-color: #eeeeee">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4>Posts</h4>
+            </div>
+
+            @if (Model.Id == currentUserId)
+            {
+                <form method="post" action="/Post/CreateFromProfile" class="mt-3">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <textarea name="text" class="form-control" placeholder="Write something..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="background-color: #5a8c8a">Create Post</button>
+                </form>
+            }
+
+            <!-- MY POSTS -->
+            @if (ViewBag.ProfilePosts != null && ((List<proiect.Models.Post>)ViewBag.ProfilePosts).Any())
+            {
+                foreach (var post in (List<proiect.Models.Post>)ViewBag.ProfilePosts)
+                {
+                    var comments = (post.Comments ?? new List<proiect.Models.Comment>()).Where(c => c.IsApproved).ToList();
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <p class="card-text">@post.Text</p>
+                            <p class="text-muted">
+                                <i class="bi bi-calendar-event"></i> Posted on @post.CreatedAt.ToString("g")
+                            </p>
+
+                            @if (comments.Any())
+                            {
+                                <button class="btn btn-sm btn-outline-secondary mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#comments-@post.Id">
+                                    View Comments (@comments.Count)
+                                </button>
+
+                                <div class="collapse" id="comments-@post.Id">
+                                    <div class="mt-2 ps-2">
+                                        @foreach (var comment in comments)
+                                        {
+                                            <div class="border rounded p-2 my-1">
+                                                <strong>@comment.Author?.DisplayName</strong>: @comment.Text
+                                                <div class="text-muted" style="font-size: small;">@comment.CreatedAt.ToString("g")</div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <p><em>No comments yet.</em></p>
+                            }
+
+                            @if (SignInManager.IsSignedIn(User))
+                            {
+                                <form asp-controller="Post" asp-action="AddComment" method="post" class="mt-2">
+                                    <input type="hidden" name="postId" value="@post.Id" />
+                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                    <div class="input-group">
+                                        <input type="text" name="content" class="form-control" placeholder="Add a comment..." required />
+                                        <button type="submit" class="btn btn-outline-primary text-light" style="background-color: #5a8c8a">Comment</button>
+                                    </div>
+                                </form>
+                            }
+
+                            @if (currentUserId == post.UserId)
+                            {
+                                <form asp-controller="Post" asp-action="Delete" method="post" class="mt-2" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                    <input type="hidden" name="id" value="@post.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete Post</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No posts available.</p>
+            }
+        </div>
+
+        @if (ViewBag.IsOwnProfile == true)
+        {
+            <form method="post" action="/Post/CreateFromProfile" class="mt-3">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <textarea name="text" class="form-control" placeholder="Write something..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Post</button>
+            </form>
+        }
+
+        <div class="profile-section" style="background-color: #eeeeee"><hr /></div>
+
+        <!-- ALBUMS -->
+        <div class="profile-section text-center" style="background-color: #eeeeee; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Albums</h3>
+                @if (Model.Id == ViewBag.CurrentUserId)
+                {
+                    <a href="@Url.Action("Create", "Album")" class="btn btn-sm btn-success" style="background-color: #5a8c8a">Add Album</a>
+                }
+            </div>
+
+            @if (Model.Albums != null && Model.Albums.Any())
+            {
+                <div class="row mt-3">
+                    @foreach (var album in Model.Albums)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 album-card">
+                                <div class="card-body d-flex flex-column justify-content-between">
+                                    <h5 class="card-title">@album.Title</h5>
+                                    <p class="card-text">@album.Photos.Count() photo(s)</p>
+                                    <a class="btn btn-primary" style="background-color: #5a8c8a" href="@Url.Action("ViewAlbum", "Album", new { id = album.Id })">View</a>
+
+                                    <form asp-controller="Album" asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this album and all its photos?');" class="mt-2">
+                                        <input type="hidden" name="id" value="@album.Id" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete Album</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p>No albums created yet.</p>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-bs-toggle='collapse']").forEach(function (btn) {
+            var targetId = btn.getAttribute("data-bs-target");
+            var target = document.querySelector(targetId);
+
+            if (target) {
+                target.addEventListener("shown.bs.collapse", function () {
+                    btn.textContent = "Hide Comments";
+                });
+
+                target.addEventListener("hidden.bs.collapse", function () {
+                    btn.textContent = "View Comments (" + target.children[0].children.length + ")";
+                });
+            }
+        });
+    });
+</script>

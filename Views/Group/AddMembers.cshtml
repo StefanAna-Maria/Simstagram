@@ -1,0 +1,27 @@
+﻿@model proiect.Models.GroupAddMembersViewModel
+
+@{
+    ViewData["Title"] = "Add Members to Group";
+}
+
+<h2>Add Members</h2>
+
+@if (Model.AvailableUsers.Count == 0)
+{
+    <p>No friends available to add.</p>
+}
+else
+{
+    <form asp-action="AddMembers" method="post">
+        <input type="hidden" name="GroupId" value="@Model.GroupId" />
+        @foreach (var user in Model.AvailableUsers)
+        {
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="SelectedUserIds" value="@user.Id" />
+                <label class="form-check-label">@user.DisplayName (@user.Email)</label>
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary mt-3">Add Selected</button>
+    </form>
+}

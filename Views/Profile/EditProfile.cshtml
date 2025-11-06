@@ -1,0 +1,44 @@
+﻿@model proiect.Models.ApplicationUser
+
+<h2>Edit Profile</h2>
+
+<form asp-action="EditProfile" enctype="multipart/form-data" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group mb-3 text-center">
+        <img src="@(!string.IsNullOrEmpty(Model.ProfilePicturePath) ? Model.ProfilePicturePath : "/images/avatar-placeholder.png")"
+             alt="Profile picture"
+             class="rounded-circle"
+             style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #4e8885;" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="ProfilePictureFile">Change Profile Picture</label>
+        <input asp-for="ProfilePictureFile" type="file" class="form-control" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label>Email</label>
+        <input type="email" class="form-control" value="@Model.Email" disabled />
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="DisplayName"></label>
+        <input asp-for="DisplayName" class="form-control" />
+        <span asp-validation-for="DisplayName" class="text-danger"></span>
+    </div>
+
+
+    <div class="form-check mb-3">
+        <input asp-for="IsProfilePublic" class="form-check-input" />
+        <label asp-for="IsProfilePublic" class="form-check-label">Make profile public?</label>
+    </div>
+
+    <button class="btn btn-outline-primary text-light" type="submit" style="background: #4e8885">Save</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

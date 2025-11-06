@@ -1,0 +1,118 @@
+﻿@model proiect.Models.Album
+
+@{
+    ViewData["Title"] = "Album: " + Model.Title;
+}
+
+<style>
+    .photo-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: 5px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .photo-card img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+</style>
+
+<h2>@Model.Title</h2>
+
+@if (Model.UserId == ViewBag.CurrentUserId)
+{
+    <a href="@Url.Action("Add", "Photo", new { albumId = Model.Id })" class="btn btn-sm btn-success mb-3">Add Photo</a>
+}
+
+@if (!Model.Photos.Any())
+{
+    <p>No photos in this album yet.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var photo in Model.Photos)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 photo-card">
+                    <img src="@photo.ImageUrl" class="card-img-top" alt="Photo" />
+                    <div class="card-body">
+                        <p class="card-text text-muted">
+                            <i class="bi bi-calendar-event"></i>
+                            Uploaded on @photo.UploadedAt.ToString("g")
+                        </p>
+
+                        <button class="btn btn-sm btn-outline-secondary mb-2" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#photo-comments-@photo.Id"
+                                aria-expanded="false" aria-controls="photo-comments-@photo.Id">
+                            View Comments
+                        </button>
+
+                        <div class="collapse" id="photo-comments-@photo.Id">
+                            @if (photo.Comments != null && photo.Comments.Any(c => c.IsApproved))
+                            {
+                                @foreach (var comment in photo.Comments.Where(c => c.IsApproved))
+                                {
+                                    <div class="border rounded p-2 mt-1">
+                                        <p class="mb-1">@comment.Text</p>
+                                        <small class="text-muted">by @comment.Author?.DisplayName on @comment.CreatedAt.ToString("g")</small>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p>No comments yet.</p>
+                            }
+                        </div>
+
+                        @if (User.Identity.IsAuthenticated && (bool)ViewBag.CanComment)
+                        {
+                            <form method="post" action="/PhotoComment/Add">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="PhotoId" value="@photo.Id" />
+                                <textarea name="Text" class="form-control mt-2" placeholder="Add a comment..." required></textarea>
+                                <button class="btn btn-outline-primary text-light" type="submit" style="background: #4e8885">Comment</button>
+                            </form>
+                        }
+
+                        @if (Model.UserId == ViewBag.CurrentUserId)
+                        {
+                            <div class="photo-actions">
+                                <form method="post" action="/Photo/Delete" onsubmit="return confirm('Esti sigur ca vrei sa stergi aceasta poza?');">
+                                    <input type="hidden" name="id" value="@photo.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm mt-2">Delete</button>
+                                </form>
+
+
+                            </div>
+                        }
+
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("[data-bs-toggle='collapse']").forEach(function (btn) {
+                var targetId = btn.getAttribute("data-bs-target");
+                var target = document.querySelector(targetId);
+
+                if (target) {
+                    target.addEventListener("shown.bs.collapse", function () {
+                        btn.textContent = "Hide Comments";
+                    });
+
+                    target.addEventListener("hidden.bs.collapse", function () {
+                        btn.textContent = "View Comments";
+                    });
+                }
+            });
+        });
+    </script>
+}
